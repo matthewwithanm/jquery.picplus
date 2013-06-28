@@ -174,7 +174,7 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source) {
-            var src,
+            var src, alt,
                 img = $source.data('image');
 
             if (img) {
@@ -189,6 +189,11 @@
 
             src = $source.attr('data-src');
             img = new Image();
+            alt = $source.attr('data-alt');
+            if (alt === null || alt === undefined) {
+                alt = this.$el.attr('data-alt');
+            }
+            img.alt = alt;
             $source.data('image', img);
             this._loadingSource = $source;
             img.onload = $.proxy(this.onImageLoad, this, img, $source);
