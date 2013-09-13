@@ -3,7 +3,7 @@
     'use strict';
 
 
-    var P, PicPlus,
+    var P, PicPlus, loadImage,
         LoadQueue, loadQueue,
         $win = $(window),
         MQL_DATA = 'picplus-mql',
@@ -15,10 +15,27 @@
         };
 
 
+    // The default image loader. The plugin has a list of image loaders and
+    // passes each one the image attributes. The loader can choose whether it
+    // wants to load the image or not. If it decides it should load the image,
+    // it should return a promise which is resolved with a DOM element
+    // representing the loaded image. Otherwise, it should return `null`.
+    loadImage = function (attrs) {
+        var deferred = $.Deferred(),
+            img = new Image();
+        img.onload = function () {
+            deferred.resolve(img);
+        };
+        $.extend(img, attrs);
+        return deferred.promise();
+    };
+
+
     LoadQueue = function () {};
     LoadQueue.create = function () {
         var lq = new LoadQueue();
         lq.items = [];
+        lq.loaders = [loadImage];
         return lq;
     };
     LoadQueue.prototype = {
@@ -38,21 +55,35 @@
             this._loadNext();
         },
         load: function (imgAttrs) {
-            var p,
+            var loadNow,
                 self = this,
                 deferred = $.Deferred(),
-                callback = $.proxy(this._onComplete, this);
+                promise = deferred.promise(),
+                onComplete = $.proxy(this._onComplete, this);
+
             // TODO: Support timeout
-            deferred.then(callback, callback);
-            this.items.push(function () {
-                var img = new Image();
-                img.onload = function () {
-                    deferred.resolve(img);
-                };
-                $.extend(img, imgAttrs);
-            });
+            loadNow = function () {
+                var p;
+
+                // Loop through the loaders until we find one to use.
+                $.each(self.loaders, function (i, loader) {
+                    p = loader(imgAttrs);
+                    if (p) {
+                        p
+                            .then(deferred.resolve)
+                            .then(onComplete);
+                        return false;
+                    }
+                });
+
+                if (!p) {
+                    $.error('No loader found for image.', imgAttrs)
+                }
+            };
+
+            this.items.push(loadNow);
             this._loadNext();
-            return deferred.promise();
+            return promise;
         }
     };
 
