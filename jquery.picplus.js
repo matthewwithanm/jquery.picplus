@@ -36,6 +36,7 @@
         var lq = new LoadQueue();
         lq.items = [];
         lq.loaders = [loadImage];
+        lq._onComplete = $.proxy(LoadQueue.prototype._onComplete, lq);
         return lq;
     };
     LoadQueue.prototype = {
@@ -58,8 +59,7 @@
             var loadNow,
                 self = this,
                 deferred = $.Deferred(),
-                promise = deferred.promise(),
-                onComplete = $.proxy(this._onComplete, this);
+                promise = deferred.promise();
 
             // TODO: Support timeout
             loadNow = function () {
@@ -71,7 +71,7 @@
                     if (p) {
                         p
                             .then(deferred.resolve)
-                            .then(onComplete);
+                            .then(self._onComplete);
                         return false;
                     }
                 });
