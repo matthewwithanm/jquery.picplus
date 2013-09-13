@@ -3,7 +3,7 @@
     'use strict';
 
 
-    var P, PicPlus, loadImage,
+    var P, PicPlus, loadImage, loadSvgInline,
         LoadQueue, loadQueue,
         $win = $(window),
         MQL_DATA = 'picplus-mql',
@@ -31,11 +31,34 @@
     };
 
 
+    loadSvgInline = function (attrs) {
+        var deferred,
+            type = attrs.type,
+            src = attrs.src,
+            isSvg = (type == 'image/svg+xml') || (!type && /\.svg(\?.*)?(#.*)?$/i.test(src));
+
+        if (!isSvg) {
+            return;
+        }
+
+        deferred = $.Deferred();
+        $.ajax({
+            url: src,
+            dataType: 'text',
+            success: function (data) {
+                var svg = $(data);
+                deferred.resolve(svg);
+            }
+        });
+        return deferred.promise();
+    };
+
+
     LoadQueue = function () {};
     LoadQueue.create = function () {
         var lq = new LoadQueue();
         lq.items = [];
-        lq.loaders = [loadImage];
+        lq.loaders = [loadSvgInline, loadImage];
         lq._onComplete = $.proxy(LoadQueue.prototype._onComplete, lq);
         return lq;
     };
@@ -187,7 +210,7 @@
                     .removeClass(ACTIVE_CLASS);
             }
             if (img && !img.parentNode) {
-                $source[0].appendChild(img);
+                $source.eq(0).append(img);
             }
             $source
                 .addClass(ACTIVE_CLASS)
