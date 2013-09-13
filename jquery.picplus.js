@@ -3,7 +3,9 @@
     'use strict';
 
 
-    var P, PicPlus, WindowWatcher, $win, ResizeWatcher, resizeWatcher,
+    var P, PicPlus,
+        LoadQueue, loadQueue,
+        $win = $(window),
         MQL_DATA = 'picplus-mql',
         ACTIVE_CLASS = 'picplus-active',
         Autoload = {
@@ -13,54 +15,45 @@
         };
 
 
-    WindowWatcher = function () {};
-    WindowWatcher.prototype = {
-        initialize: function () {
-            if (!$win) { $win = $(window); }
-            this.handler = $.proxy(this.handler, this);
-            this.items = [];
-        },
-
-        add: function (item) {
-            if (this.items.indexOf(item) === -1) {
-                this.items.push(item);
-                if (this.items.length === 1) {
-                    // This is the first item. Add a listener.
-                    $win.on(this.event, this.handler);
-                }
+    LoadQueue = function () {};
+    LoadQueue.create = function () {
+        var lq = new LoadQueue();
+        lq.items = [];
+        return lq;
+    };
+    LoadQueue.prototype = {
+        simultaneous: 3,
+        _loadingCount: 0,
+        _loadNext: function () {
+            var nextItem;
+            if (!this.items.length || this._loadingCount >= this.simultaneous) {
+                return;
             }
+            nextItem = this.items.pop();  // Load most recently queued first.
+            this._loadingCount += 1;
+            nextItem();
         },
-
-        remove: function (item) {
-            var index = this.items.indexOf(item);
-            if (index !== -1) {
-                this.items.splice(index, 1);
-                if (this.items.length === 0) {
-                    // That was the last item. Remove the listener.
-                    $win.off(this.event, this.handler);
-                }
-            }
+        _onComplete: function () {
+            this._loadingCount -= 1;
+            this._loadNext();
         },
-
-        handler: function () {
-            var i;
-            for (i = this.items.length - 1; i >= 0; i -= 1) {
-                this.callback(this.items[i]);
-            }
+        load: function (imgAttrs) {
+            var p,
+                self = this,
+                deferred = $.Deferred(),
+                callback = $.proxy(this._onComplete, this);
+            // TODO: Support timeout
+            deferred.then(callback, callback);
+            this.items.push(function () {
+                var img = new Image();
+                img.onload = function () {
+                    deferred.resolve(img);
+                };
+                $.extend(img, imgAttrs);
+            });
+            this._loadNext();
+            return deferred.promise();
         }
-    };
-
-
-    ResizeWatcher = function () {};
-    ResizeWatcher.create = function () {
-        var w = new ResizeWatcher();
-        w.initialize.apply(w, arguments);
-        return w;
-    };
-    ResizeWatcher.prototype = new WindowWatcher();
-    ResizeWatcher.prototype.event = 'resize';
-    ResizeWatcher.prototype.callback = function (el) {
-        el.load();
     };
 
 
@@ -92,10 +85,8 @@
                 // Unfortunately, we can't use MediaQueryList.addListener
                 // because if multiple sources match, we need to recalculate
                 // to find the *first* match.
-                if (!resizeWatcher) {
-                    resizeWatcher = ResizeWatcher.create();
-                }
-                resizeWatcher.add(this);
+                this._onResize = $.proxy(this.load, this);
+                $win.on('resize', this._onResize);
             }
             if (this.options.autoload === Autoload.IMMEDIATE) {
                 this.load();
@@ -154,17 +145,17 @@
             }
             this._loadingSource = null;
             img.onload = null;
-            this.showImage(img, $source);
+            this.showImage($source, img);
         },
 
         // Show the provided image, for the provided source element.
-        showImage: function (img, $source) {
+        showImage: function ($source, img) {
             if (this.$sources.length > 1) {
                 this.$sources
                     .hide()
                     .removeClass(ACTIVE_CLASS);
             }
-            if (!img.parentNode) {
+            if (img && !img.parentNode) {
                 $source[0].appendChild(img);
             }
             $source
@@ -174,35 +165,40 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source) {
-            var src, alt,
-                img = $source.data('image');
+            var src, alt, lq,
+                self = this,
+                promise = $source.data('promise');
 
-            if (img) {
-                if (img.complete) {
-                    this.showImage(img, $source);
-                    return;
+            if (promise) {
+                if (promise.state() == 'resolved') {
+                    this.showImage($source)
                 }
 
-                // It's already loading. Just let it finish.
+                // TODO: Should promote it to top of queue.
                 return;
             }
 
+            if (!loadQueue) {
+                loadQueue = LoadQueue.create();
+            }
+
             src = $source.attr('data-src');
-            img = new Image();
             alt = $source.attr('data-alt');
             if (alt === null || alt === undefined) {
                 alt = this.$el.attr('data-alt');
             }
-            img.alt = alt;
-            $source.data('image', img);
+
+            promise = loadQueue.load({src: src, alt: alt});
+            $source.data('promise', promise);
             this._loadingSource = $source;
-            img.onload = $.proxy(this.onImageLoad, this, img, $source);
-            img.src = src;
+            promise.done(function (img) {
+                self.onImageLoad(img, $source);
+            });
         },
 
         destroy: function () {
-            if (resizeWatcher) {
-                resizeWatcher.remove(this);
+            if (this._onResize) {
+                $win.off('resize', this._onResize);
             }
         }
     };
