@@ -5,19 +5,18 @@
     var loadqueue,
         queueupLoad;
 
-    queueupLoad = function (attrs) {
-        var promise,
-            src = attrs.src;
+    queueupLoad = function (src, opts) {
+        var promise;
         if (!loadqueue) {
             loadqueue = queueup();
         }
-        promise = loadqueue.load(src);
+        promise = loadqueue.load(src, opts);
         loadqueue.start();
         return promise;
     };
 
     $.picplus.config({
-        loaders: [queueupLoad]
+        loadSource: queueupLoad
     });
 
 }(this.jQuery, this.queueup));

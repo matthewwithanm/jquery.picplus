@@ -60,8 +60,14 @@
             // When should the image be loaded?
             autoload: Autoload.IMMEDIATE,
 
-            // Which loaders, and in what order, should get the chance to load?
-            loaders: [loadSvgInline, loadImage],
+            // Register loaders for the specified types.
+            loaders: {
+                jpeg: loadImage,
+                jpg: loadImage,
+                png: loadImage,
+                gif: loadImage,
+                svg: loadSvgInline
+            },
 
             // Does the image change size when the browser window does?
             responsive: false
@@ -70,6 +76,7 @@
         initialize: function ($el, options) {
             this.$el = $el;
             this.options = $.extend({}, this.defaultOptions, this.getHtmlOptions(), options);
+            this.loadSource = this.options.loadSource || this.loadSource;
 
             if (this.$el.is('[data-src]')) {
                 // Shorthand version
@@ -164,13 +171,13 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source) {
-            var src, alt, lq, promise, imgAttrs,
+            var src, alt, imgAttrs, type,
                 self = this,
                 promise = $source.data('promise');
 
             if (promise) {
-                if (promise.state() == 'resolved') {
-                    this.showImage($source)
+                if (promise.state() === 'resolved') {
+                    this.showImage($source);
                 }
 
                 // TODO: Should promote it to top of queue.
@@ -179,26 +186,47 @@
 
             src = $source.attr('data-src');
             alt = $source.attr('data-alt');
+            type = $source.attr('data-type');
             if (alt === null || alt === undefined) {
                 alt = this.$el.attr('data-alt');
             }
 
-            imgAttrs = {src: src, alt: alt};
-            // Loop through the loaders until we find one to use.
-            $.each(this.options.loaders, function (i, loader) {
-                promise = loader(imgAttrs);
-                if (promise) {
-                    return false;
-                }
-            });
+            imgAttrs = {alt: alt};
+
+            promise = this.loadSource(src, {type: type});
+
             if (!promise) {
-                $.error('No loader found for image.', imgAttrs);
+                $.error('No loader found for image.');
             }
+
+            promise.then(function (el) {
+                $(el).attr(imgAttrs);
+            });
+
             $source.data('promise', promise);
             this._loadingSource = $source;
             promise.done(function (img) {
                 self.onImageLoad(img, $source);
             });
+        },
+
+        loadSource: function (src, opts) {
+            var m, ext, loader,
+                type = opts.type;
+            if (!type) {
+                m = src.match(/.*\.(.+)(\?.*)?(#.*)?$/i);
+                ext = m && m[1].toLowerCase();
+            }
+
+            // Look for a loader registered for the given type.
+            $.each(this.options.loaders, function (key, value) {
+                if (key === ext || type.match(new RegExp('^[^/]+/' + key + '(\+.+)?$'))) {
+                    loader = value;
+                    return false;
+                }
+            });
+
+            return loader && loader(src);  // TODO: Should we pass options?
         },
 
         destroy: function () {
@@ -245,14 +273,11 @@
         $('[data-picplus]').picplus(opts);
     };
 
-    $.picplus.config = function (opts) {
-        // global config opts.
-        var globalOpts = PicPlus.prototype.defaultOptions;
-        // Loader plugins can set the loaders option to automatically
-        // become 'registered' with picplus.
-        if (opts.loaders !== undefined) {
-            globalOpts.loaders = opts.loaders.concat(globalOpts.loaders);
-        }
-    };
+    $.extend($.picplus, {
+        config: function (opts) {
+          $.extend(PicPlus.prototype.defaultOptions, opts);
+        },
+        PicPlus: PicPlus
+    });
 
 }(this.jQuery, window, document));
