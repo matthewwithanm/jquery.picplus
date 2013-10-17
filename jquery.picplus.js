@@ -4,7 +4,6 @@
 
 
     var P, PicPlus, loadImage, loadSvgInline,
-        LoadQueue, loadQueue,
         $win = $(window),
         MQL_DATA = 'picplus-mql',
         ACTIVE_CLASS = 'picplus-active',
@@ -54,69 +53,15 @@
     };
 
 
-    LoadQueue = function () {};
-    LoadQueue.create = function () {
-        var lq = new LoadQueue();
-        lq.items = [];
-        lq.loaders = [loadSvgInline, loadImage];
-        lq._onComplete = $.proxy(LoadQueue.prototype._onComplete, lq);
-        return lq;
-    };
-    LoadQueue.prototype = {
-        simultaneous: 3,
-        _loadingCount: 0,
-        _loadNext: function () {
-            var nextItem;
-            if (!this.items.length || this._loadingCount >= this.simultaneous) {
-                return;
-            }
-            nextItem = this.items.pop();  // Load most recently queued first.
-            this._loadingCount += 1;
-            nextItem();
-        },
-        _onComplete: function () {
-            this._loadingCount -= 1;
-            this._loadNext();
-        },
-        load: function (imgAttrs) {
-            var loadNow,
-                self = this,
-                deferred = $.Deferred(),
-                promise = deferred.promise();
-
-            // TODO: Support timeout
-            loadNow = function () {
-                var p;
-
-                // Loop through the loaders until we find one to use.
-                $.each(self.loaders, function (i, loader) {
-                    p = loader(imgAttrs);
-                    if (p) {
-                        p
-                            .then(deferred.resolve)
-                            .then(self._onComplete);
-                        return false;
-                    }
-                });
-
-                if (!p) {
-                    $.error('No loader found for image.', imgAttrs)
-                }
-            };
-
-            this.items.push(loadNow);
-            this._loadNext();
-            return promise;
-        }
-    };
-
-
     P = PicPlus = function () {};
     PicPlus.prototype = {
 
         defaultOptions: {
             // When should the image be loaded?
             autoload: Autoload.IMMEDIATE,
+
+            // Which loaders, and in what order, should get the chance to load?
+            loaders: [loadSvgInline, loadImage],
 
             // Does the image change size when the browser window does?
             responsive: false
@@ -219,7 +164,7 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source) {
-            var src, alt, lq,
+            var src, alt, lq, promise, imgAttrs,
                 self = this,
                 promise = $source.data('promise');
 
@@ -232,17 +177,23 @@
                 return;
             }
 
-            if (!loadQueue) {
-                loadQueue = LoadQueue.create();
-            }
-
             src = $source.attr('data-src');
             alt = $source.attr('data-alt');
             if (alt === null || alt === undefined) {
                 alt = this.$el.attr('data-alt');
             }
 
-            promise = loadQueue.load({src: src, alt: alt});
+            imgAttrs = {src: src, alt: alt};
+            // Loop through the loaders until we find one to use.
+            $.each(this.options.loaders, function (i, loader) {
+                promise = loader(imgAttrs);
+                if (promise) {
+                    return false;
+                }
+            });
+            if (!promise) {
+                $.error('No loader found for image.', imgAttrs);
+            }
             $source.data('promise', promise);
             this._loadingSource = $source;
             promise.done(function (img) {
@@ -295,7 +246,13 @@
     };
 
     $.picplus.config = function (opts) {
-        // global config opts. for example, how many images to load at once.
+        // global config opts.
+        var globalOpts = PicPlus.prototype.defaultOptions;
+        // Loader plugins can set the loaders option to automatically
+        // become 'registered' with picplus.
+        if (opts.loaders !== undefined) {
+            globalOpts.loaders = opts.loaders.concat(globalOpts.loaders);
+        }
     };
 
 }(this.jQuery, window, document));
