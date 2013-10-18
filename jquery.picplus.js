@@ -14,28 +14,19 @@
     // wants to load the image or not. If it decides it should load the image,
     // it should return a promise which is resolved with a DOM element
     // representing the loaded image. Otherwise, it should return `null`.
-    loadImage = function (attrs) {
+    loadImage = function (src) {
         var deferred = $.Deferred(),
             img = new Image();
         img.onload = function () {
             deferred.resolve(img);
         };
-        $.extend(img, attrs);
+        img.src = src;
         return deferred.promise();
     };
 
 
-    loadSvgInline = function (attrs) {
-        var deferred,
-            type = attrs.type,
-            src = attrs.src,
-            isSvg = (type == 'image/svg+xml') || (!type && /\.svg(\?.*)?(#.*)?$/i.test(src));
-
-        if (!isSvg) {
-            return;
-        }
-
-        deferred = $.Deferred();
+    loadSvgInline = function (src) {
+        var deferred = $.Deferred();
         $.ajax({
             url: src,
             dataType: 'text',
