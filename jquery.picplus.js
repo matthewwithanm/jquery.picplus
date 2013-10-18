@@ -6,12 +6,7 @@
     var P, PicPlus, loadImage, loadSvgInline,
         $win = $(window),
         MQL_DATA = 'picplus-mql',
-        ACTIVE_CLASS = 'picplus-active',
-        Autoload = {
-            IMMEDIATE: 'immediate',
-            LAZY: 'lazy',
-            NONE: 'none'
-        };
+        ACTIVE_CLASS = 'picplus-active';
 
 
     // The default image loader. The plugin has a list of image loaders and
@@ -57,8 +52,8 @@
     PicPlus.prototype = {
 
         defaultOptions: {
-            // When should the image be loaded?
-            autoload: Autoload.IMMEDIATE,
+            // Should the image load as soon as possible?
+            autoload: true,
 
             // Plugins to initialize with PicPlus.
             plugins: [],
@@ -99,7 +94,7 @@
 
             this._initializePlugins();
 
-            if (this.options.autoload === Autoload.IMMEDIATE) {
+            if (this.options.autoload) {
                 this.load();
             }
             return this;
