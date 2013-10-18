@@ -60,6 +60,9 @@
             // When should the image be loaded?
             autoload: Autoload.IMMEDIATE,
 
+            // Plugins to initialize with PicPlus.
+            plugins: [],
+
             // Register loaders for the specified types.
             loaders: {
                 jpeg: loadImage,
@@ -76,7 +79,6 @@
         initialize: function ($el, options) {
             this.$el = $el;
             this.options = $.extend({}, this.defaultOptions, this.getHtmlOptions(), options);
-            this.loadSource = this.options.loadSource || this.loadSource;
 
             if (this.$el.is('[data-src]')) {
                 // Shorthand version
@@ -94,10 +96,21 @@
                 this._onResize = $.proxy(this.load, this);
                 $win.on('resize', this._onResize);
             }
+
+            this._initializePlugins();
+
             if (this.options.autoload === Autoload.IMMEDIATE) {
                 this.load();
             }
             return this;
+        },
+
+        // Loop through and initialize plugins.
+        _initializePlugins: function () {
+            var instance = this;
+            $.each(this.options.plugins, function (i, plugin) {
+                plugin.initialize(instance);
+            });
         },
 
         // Create a media query list for each source.

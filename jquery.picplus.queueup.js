@@ -2,21 +2,20 @@
 (function ($, queueup) {
     'use strict';
 
-    var loadqueue,
-        queueupLoad;
+    var loadqueue;  // a 'global' loadqueue for every instance of picplus.
 
-    queueupLoad = function (src, opts) {
-        var promise;
-        if (!loadqueue) {
-            loadqueue = queueup();
+    $.picplus.config().plugins.push({
+        initialize: function (picplus) {
+            picplus.loadSource = function (src, opts) {
+                var promise;
+                if (!loadqueue) {
+                    loadqueue = queueup();
+                }
+                promise = loadqueue.load(src, opts);
+                loadqueue.start();
+                return promise;
+            };
         }
-        promise = loadqueue.load(src, opts);
-        loadqueue.start();
-        return promise;
-    };
-
-    $.picplus.config({
-        loadSource: queueupLoad
     });
 
 }(this.jQuery, this.queueup));
