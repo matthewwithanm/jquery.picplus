@@ -275,7 +275,10 @@
 
     $.extend($.picplus, {
         config: function (opts) {
-          $.extend(PicPlus.prototype.defaultOptions, opts);
+            if (opts) {
+                $.extend(PicPlus.prototype.defaultOptions, opts);
+            }
+            return PicPlus.prototype.defaultOptions;
         },
         PicPlus: PicPlus
     });
