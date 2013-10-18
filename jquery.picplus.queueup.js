@@ -15,6 +15,14 @@
                 loadqueue.start();
                 return promise;
             };
+            picplus._loadSource = function ($source) {
+                var promise = $source.data('promise');
+                // If this source is already pending, promote it.
+                if (promise && promise.state() === 'pending') {
+                    return promise.promote();
+                }
+                return $.picplus.PicPlus.prototype._loadSource.call(this, $source);
+            };
         }
     });
 
