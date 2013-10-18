@@ -219,7 +219,7 @@
 
             // Look for a loader registered for the given type.
             $.each(this.options.loaders, function (key, value) {
-                if (key === ext || type.match(new RegExp('^[^/]+/' + key + '(\+.+)?$'))) {
+                if (key === ext || (type && type.match(new RegExp('^[^/]+/' + key + '(\\+.+)?$')))) {
                     loader = value;
                     return false;
                 }
