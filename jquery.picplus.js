@@ -242,18 +242,19 @@
                 args = arguments;
             this.each(function (i, el) {
                 var $el = $(el),
-                    plugin = $el.data('picplus'),
+                    plugin = $el.data('picplusInstance'),
                     method = typeof optionsOrMethod === 'string' ? optionsOrMethod : null,
                     options = method === null ? optionsOrMethod || {} : {};
 
                 if (!plugin) {
                     if (method) {
+
                         $.error('You can\'t call the picplus method "' + method
                                 + '" without first initializing the plugin by calling '
                                 + 'picplus() on the jQuery object.');
                     } else {
                         plugin = new PicPlus().initialize($el, options);
-                        $el.data('picplus', plugin);
+                        $el.data('picplusInstance', plugin);
                     }
                 } else if (method) {
                     if (typeof plugin[method] !== 'function') {
