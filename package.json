@@ -1,0 +1,27 @@
+{
+  "name": "jquery.picplus",
+  "version": "0.0.0",
+  "description": "Take control of your images.",
+  "main": "jquery.picplus.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/matthewwithanm/jquery-picplus.git"
+  },
+  "keywords": [
+    "jquery",
+    "image",
+    "picture",
+    "load",
+    "responsive",
+    "svg"
+  ],
+  "author": "Matthew Tretter <m@tthewwithanm.com>",
+  "license": "MIT",
+  "readmeFilename": "README.md",
+  "devDependencies": {
+    "mversion": "~0.2.0"
+  }
+}
