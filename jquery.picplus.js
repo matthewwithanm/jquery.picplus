@@ -3,7 +3,7 @@
     'use strict';
 
 
-    var P, PicPlus, loadImage, loadSvgInline,
+    var PicPlus, loadImage, loadSvgInline,
         $win = $(window),
         MQL_DATA = 'picplus-mql',
         ACTIVE_CLASS = 'picplus-active';
@@ -39,7 +39,7 @@
     };
 
 
-    P = PicPlus = function () {};
+    PicPlus = function () {};
     PicPlus.prototype = {
 
         defaultOptions: {
