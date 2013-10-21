@@ -11,7 +11,7 @@ What?
 -----
 
 - [Load different images based on media queries](#responsive-images)
-- [Load SVGs inline so they can interactive and styled using CSS](#embedded-svgs)
+- [Load SVGs inline so they can be interactive and styled using CSS](#embedded-svgs)
 - [Lazyload images when they're scrolled into the viewport](#lazyloading)
 - [Queue loads and promote images when they become more important](#loading)
 
