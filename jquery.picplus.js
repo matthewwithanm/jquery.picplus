@@ -39,7 +39,35 @@
     };
 
 
-    PicPlus = function () {};
+    PicPlus = function ($el, options) {
+        this.$el = $el;
+        this.options = $.extend({}, this.defaultOptions, this.getHtmlOptions(), options);
+
+        if (this.$el.is('[data-src]')) {
+            // Shorthand version
+            this.$sources = this.$el;
+        } else {
+            this.$sources = this.$el.find('[data-src]');
+        }
+
+        this._setupMediaQueries();
+
+        if (this.options.responsive && this.$sources.length > 1) {
+            // Unfortunately, we can't use MediaQueryList.addListener
+            // because if multiple sources match, we need to recalculate
+            // to find the *first* match.
+            this._onResize = $.proxy(this.load, this);
+            $win.on('resize', this._onResize);
+        }
+
+        this._initializePlugins();
+
+        if (this.options.autoload) {
+            this.load();
+        }
+        return this;
+    };
+
     PicPlus.prototype = {
 
         defaultOptions: {
@@ -60,35 +88,6 @@
 
             // Does the image change size when the browser window does?
             responsive: false
-        },
-
-        initialize: function ($el, options) {
-            this.$el = $el;
-            this.options = $.extend({}, this.defaultOptions, this.getHtmlOptions(), options);
-
-            if (this.$el.is('[data-src]')) {
-                // Shorthand version
-                this.$sources = this.$el;
-            } else {
-                this.$sources = this.$el.find('[data-src]');
-            }
-
-            this._setupMediaQueries();
-
-            if (this.options.responsive && this.$sources.length > 1) {
-                // Unfortunately, we can't use MediaQueryList.addListener
-                // because if multiple sources match, we need to recalculate
-                // to find the *first* match.
-                this._onResize = $.proxy(this.load, this);
-                $win.on('resize', this._onResize);
-            }
-
-            this._initializePlugins();
-
-            if (this.options.autoload) {
-                this.load();
-            }
-            return this;
         },
 
         // Loop through and initialize plugins.
@@ -253,7 +252,7 @@
                                 + '" without first initializing the plugin by calling '
                                 + 'picplus() on the jQuery object.');
                     } else {
-                        plugin = new PicPlus().initialize($el, options);
+                        plugin = new PicPlus($el, options);
                         $el.data('picplusInstance', plugin);
                     }
                 } else if (method) {
