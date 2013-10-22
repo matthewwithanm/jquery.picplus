@@ -1,4 +1,4 @@
-jquery-picplus
+jquery.picplus
 ==============
 
 Take control of your images. By [matthewwithanm] and [lettertwo].
@@ -19,10 +19,10 @@ What?
 Getting Started
 ---------------
 
-To get started, `bower install jquery-picplus` or download the file from [the
+To get started, `bower install jquery.picplus` or download the file from [the
 GitHub page][1]. Include a `<script>` tag in your HTML that points to it.
 
-[1]: http://github.com/matthewwithanm/jquery-picplus
+[1]: http://github.com/matthewwithanm/jquery.picplus
 
 
 The Basics

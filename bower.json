@@ -16,7 +16,7 @@
     "svg"
   ],
   "license": "MIT",
-  "homepage": "https://github.com/matthewwithanm/jquery-picplus",
+  "homepage": "https://github.com/matthewwithanm/jquery.picplus",
   "ignore": [
     "**/.*",
     "node_modules",
