@@ -65,7 +65,6 @@
         if (this.options.autoload) {
             this.load();
         }
-        return this;
     };
 
     PicPlus.prototype = {
