@@ -20,6 +20,9 @@
         img.onload = function () {
             deferred.resolve(img);
         };
+        img.onerror = function () {
+            deferred.reject();
+        };
         img.src = src;
         return deferred.promise();
     };
@@ -33,6 +36,9 @@
             success: function (data) {
                 var svg = $(data);
                 deferred.resolve(svg);
+            },
+            error: function () {
+                deferred.reject();
             }
         });
         return deferred.promise();
