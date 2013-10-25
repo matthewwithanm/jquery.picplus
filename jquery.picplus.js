@@ -92,7 +92,14 @@
             },
 
             // Does the image change size when the browser window does?
-            responsive: false
+            responsive: false,
+
+            classNames: {
+                loading: 'loading',
+                loaded: 'loaded',
+                sourceLoading: 'loading',
+                sourceLoaded: 'loaded'
+            }
         },
 
         // Loop through and initialize plugins.
@@ -168,8 +175,13 @@
                 $source.eq(0).append(img);
             }
             $source
+                .removeClass(this.options.classNames.sourceLoading)
+                .addClass(this.options.classNames.sourceLoaded)
                 .addClass(ACTIVE_CLASS)
                 .show();
+            this.$el
+                .removeClass(this.options.classNames.loading)
+                .addClass(this.options.classNames.loaded);
         },
 
         // Load the source represented by the provided element.
@@ -186,6 +198,14 @@
                 // TODO: Should promote it to top of queue.
                 return;
             }
+
+            // Update the classes.
+            this.$el
+                .removeClass(this.options.classNames.loaded)
+                .addClass(this.options.classNames.loading);
+            $source
+                .removeClass(this.options.classNames.sourceLoaded)
+                .addClass(this.options.classNames.sourceLoading);
 
             src = $source.attr('data-src');
             alt = $source.attr('data-alt');
