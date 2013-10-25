@@ -1,6 +1,6 @@
 {
   "name": "jquery.picplus",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Take control of your images.",
   "main": "jquery.picplus.js",
   "scripts": {
