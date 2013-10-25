@@ -162,6 +162,7 @@
             this._loadingSource = null;
             img.onload = null;
             this.showImage($source, img);
+            $source.trigger('picplus:load');
         },
 
         // Show the provided image, for the provided source element.
