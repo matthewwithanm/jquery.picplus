@@ -108,7 +108,10 @@
             loadError: function(el) {},
 
             //called when progress notifications are sent
-            loadProgress: function(el) {}
+            loadProgress: function(el) {},
+
+            //called after the image is actually added to the dom
+            afterShow: function(el) {}
 
         },
 
@@ -193,6 +196,8 @@
             this.$el
                 .removeClass(this.options.classNames.loading)
                 .addClass(this.options.classNames.loaded);
+
+            this.options.afterShow(img);
         },
 
         // Load the source represented by the provided element.
