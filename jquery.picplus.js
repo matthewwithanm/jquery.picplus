@@ -99,7 +99,20 @@
                 loaded: 'loaded',
                 sourceLoading: 'loading',
                 sourceLoaded: 'loaded'
-            }
+            },
+
+            //called immediately after an image is successfully loaded
+            loadSuccess: function(el) {},
+
+            //called when an error occurs after an image is loaded
+            loadError: function(el) {},
+
+            //called when progress notifications are sent
+            loadProgress: function(el) {},
+
+            //called after the image is actually added to the dom
+            afterShow: function(el) {}
+
         },
 
         // Loop through and initialize plugins.
@@ -183,6 +196,8 @@
             this.$el
                 .removeClass(this.options.classNames.loading)
                 .addClass(this.options.classNames.loaded);
+
+            this.options.afterShow(img);
         },
 
         // Load the source represented by the provided element.
@@ -224,8 +239,12 @@
             }
 
             promise.then(function (el) {
-                $(el).attr(imgAttrs);
-            });
+                    $(el).attr(imgAttrs);
+                    self.options.loadSuccess(el);
+                },
+                this.options.loadError,
+                this.options.loadProgress
+            );
 
             $source.data('promise', promise);
             this._loadingSource = $source;
@@ -250,7 +269,7 @@
                 }
             });
 
-            return loader && loader(src);  // TODO: Should we pass options?
+            return loader && loader(src);    // TODO: Should we pass options?
         },
 
         destroy: function () {
