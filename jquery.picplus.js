@@ -6,7 +6,8 @@
     var PicPlus, loadImage, loadSvgInline,
         $win = $(window),
         MQL_DATA = 'picplus-mql',
-        ACTIVE_CLASS = 'picplus-active';
+        ACTIVE_CLASS = 'picplus-active',
+        INACTIVE_CLASS = 'picplus-inactive';
 
 
     // The default image loader. The plugin has a list of image loaders and
@@ -94,6 +95,13 @@
             // Does the image change size when the browser window does?
             responsive: false,
 
+            // By default, picplus will use $.show() and $.hide() to show active
+            // sources. However, because of how the CSS "display" property
+            // works, this may not give the desired results. In those cases, you
+            // can set this option to `false` and style the elements using the
+            // active and inactive classes.
+            toggleDisplay: true,
+
             classNames: {
                 loading: 'loading',
                 loaded: 'loaded',
@@ -169,8 +177,11 @@
         showImage: function ($source, img) {
             if (this.$sources.length > 1) {
                 this.$sources
-                    .hide()
+                    .addClass(INACTIVE_CLASS)
                     .removeClass(ACTIVE_CLASS);
+                if (this.options.toggleDisplay) {
+                    this.$sources.hide();
+                }
             }
             if (img && !img.parentNode) {
                 $source.eq(0).append(img);
@@ -178,8 +189,11 @@
             $source
                 .removeClass(this.options.classNames.sourceLoading)
                 .addClass(this.options.classNames.sourceLoaded)
-                .addClass(ACTIVE_CLASS)
-                .show();
+                .removeClass(INACTIVE_CLASS)
+                .addClass(ACTIVE_CLASS);
+            if (this.options.toggleDisplay) {
+                $source.show();
+            }
             this.$el
                 .removeClass(this.options.classNames.loading)
                 .addClass(this.options.classNames.loaded);
