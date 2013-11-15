@@ -20,6 +20,10 @@
     loadImage = function (opts, done, fail) {
         var img = new Image();
         img.onload = function () {
+            if ((this.naturalWidth !== undefined && (this.naturalWidth + this.naturalHeight === 0)) || (this.width + this.height === 0)) {
+                fail(new Error("Image <" + opts.url + "> could not be loaded."));
+                return;
+            }
             done(img);
         };
         img.onerror = function (err) {
