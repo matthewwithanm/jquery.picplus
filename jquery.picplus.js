@@ -88,13 +88,20 @@
             // Plugins to initialize with PicPlus.
             plugins: [],
 
-            // Register loaders for the specified types.
+            // Register default types that can be loaded.
+            types: {
+                jpeg: 'image',
+                jpg: 'image',
+                png: 'image',
+                gif: 'image',
+                svg: 'image'
+            },
+
+            // Register loaders with names so that they can be specified in
+            // options (to override the default).
             loaders: {
-                jpeg: loadImage,
-                jpg: loadImage,
-                png: loadImage,
-                gif: loadImage,
-                svg: loadSvgInline
+                'image': loadImage,
+                'inline-svg': loadSvgInline
             },
 
             // Does the image change size when the browser window does?
@@ -208,7 +215,7 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source) {
-            var src, alt, imgAttrs, type,
+            var src, alt, imgAttrs, type, loader,
                 self = this,
                 promise = $source.data('promise');
 
@@ -232,14 +239,14 @@
             src = $source.attr('data-src');
             alt = $source.attr('data-alt');
             type = $source.attr('data-type');
+            loader = $source.attr('data-loader');
             if (alt === null || alt === undefined) {
                 alt = this.$el.attr('data-alt');
             }
 
             imgAttrs = {alt: alt};
 
-            promise = this.loadSource(src, {type: type});
-
+            promise = this.loadSource(src, {type: type, loader: loader});
             if (!promise) {
                 $.error('No loader found for image.');
             }
@@ -256,20 +263,25 @@
         },
 
         loadSource: function (src, opts) {
-            var m, ext, loader,
-                type = opts.type;
-            if (!type) {
-                m = src.match(/.*\.(.+)(\?.*)?(#.*)?$/i);
-                ext = m && m[1].toLowerCase();
-            }
+            var m, ext, loader, type,
+                loaders = this.options.loaders;
 
-            // Look for a loader registered for the given type.
-            $.each(this.options.loaders, function (key, value) {
-                if (key === ext || (type && type.match(new RegExp('^[^/]+/' + key + '(\\+.+)?$')))) {
-                    loader = value;
-                    return false;
+            if (opts.loader) {
+                loader = loaders[opts.loader];
+            } else {
+                type = opts.type;
+                if (!type) {
+                    m = src.match(/.*\.(.+)(\?.*)?(#.*)?$/i);
+                    ext = m && m[1].toLowerCase();
                 }
-            });
+                // Look for a loader registered for the given type.
+                $.each(this.options.types, function (key, value) {
+                    if (key === ext || (type && type.match(new RegExp('^[^/]+/' + key + '(\\+.+)?$')))) {
+                        loader = loaders[value];
+                        return false;
+                    }
+                });
+            }
 
             return loader && loader(src);  // TODO: Should we pass options?
         },
