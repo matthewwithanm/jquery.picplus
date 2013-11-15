@@ -47,6 +47,7 @@
 
 
     PicPlus = function ($el, options) {
+        var self = this;
         this.$el = $el;
         this.options = $.extend({}, this.defaultOptions, this.getHtmlOptions(), options);
 
@@ -69,7 +70,7 @@
 
         this.pluginInstances = [];
         $.each(this.options.plugins, function (i, plugin) {
-            this.pluginInstances.push(plugin.create(this));
+            self.pluginInstances.push(plugin.create(self));
         });
         this._callPluginMethod('initialize');
 
