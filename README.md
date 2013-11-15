@@ -78,10 +78,12 @@ SVGs are awesome and especially important for devices with high pixel densities
 in your HTML, but that bloats the size of your markup and prevents browsers from
 caching them. With PicPlus, though, you can just include them like normal
 images and they'll be loaded and inserted into your document. That means you can
-style them with CSS, and script them with JavaScript.
+style them with CSS, and script them with JavaScript. Just add a `data-loader`
+attribute:
 
 ```html
 <span data-picplus
+    data-loader="inline-svg"
     data-src="myimage.svg"
     data-alt="An awesome picture"></span>
 ```
