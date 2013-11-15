@@ -107,7 +107,7 @@ Lazy Loading
 ------------
 
 Lazy loading images when they enter the viewport can be a great way to optimize
-your page load. To get this behavior, simply include the picplus.lazyload
+your page load. To get this behavior, simply include the [picplus.lazyload]
 plugin, and set the `autoload` option to false:
 
 ```javascript
@@ -133,10 +133,13 @@ $('.my-picture').picplus('load');
 ```
 
 That's cool by itself, but it's only the tip of the iceberg. If you use the
-queueup plugin, images will be placed into a loading queue when you call
+[queueup plugin][picplus.queueup], images will be placed into a loading queue when you call
 `load()`. Subsequent calls to `load()` will promote the image in the queue. The
 queueup plugin can be used whether `autoload` is `true` or `false`. If
 `autoload` is `true` (the default), and you use both the queueup and
 [lazyload](#lazyloading) plugins, all of your images will be loaded
 automatically in the background, but the ones in the viewport will always have
 priority!
+
+[picplus.lazyload]: https://github.com/matthewwithanm/jquery.picplus.lazyload
+[picplus.queueup]: https://github.com/matthewwithanm/jquery.picplus.queueup
