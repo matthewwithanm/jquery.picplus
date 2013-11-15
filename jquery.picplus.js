@@ -320,6 +320,12 @@
     };
 
     $.extend($.picplus, {
+        addPlugin: function (plugin) {
+            var plugins = PicPlus.prototype.defaultOptions.plugins;
+            if (plugins.indexOf(plugin) === -1) {
+                plugins.push(plugin);
+            }
+        },
         config: function (opts) {
             if (opts) {
                 $.extend(PicPlus.prototype.defaultOptions, opts);
