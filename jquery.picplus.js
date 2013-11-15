@@ -1,5 +1,5 @@
 /*jslint browser: true, nomen: true, todo: true */
-(function ($, window, document) {
+(function ($, window) {
     'use strict';
 
 
@@ -335,4 +335,4 @@
         PicPlus: PicPlus
     });
 
-}(this.jQuery, window, document));
+}(this.jQuery, window));
