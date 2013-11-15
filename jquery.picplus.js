@@ -67,7 +67,7 @@
             $win.on('resize', this._onResize);
         }
 
-        this._initializePlugins();
+        this._callPluginMethod('initialize', this);
 
         if (this.options.autoload) {
             this.load();
@@ -110,11 +110,11 @@
             }
         },
 
-        // Loop through and initialize plugins.
-        _initializePlugins: function () {
-            var instance = this;
+        // Invoke a method on the plugins for this instance.
+        _callPluginMethod: function (method) {
+            var args = Array.prototype.slice.call(arguments, 1);
             $.each(this.options.plugins, function (i, plugin) {
-                plugin.initialize(instance);
+                plugin[method].apply(plugin, args);
             });
         },
 
