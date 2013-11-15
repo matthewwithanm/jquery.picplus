@@ -267,31 +267,41 @@
             this.loadSource(src, {type: type, loader: loader}, $source, onDone, fail);
         },
 
-        loadSource: function (url, opts, $source, done, fail) {
-            var m, ext, loader, type,
-                loaders = this.options.loaders;
-
-            if (opts.loader) {
-                loader = loaders[opts.loader];
-            } else {
+        getLoader: function (url, opts) {
+            var m, ext,
+                self = this,
+                loader = opts.loader,
                 type = opts.type;
-                if (!type) {
-                    m = url.match(/.*\.(.+)(\?.*)?(#.*)?$/i);
-                    ext = m && m[1].toLowerCase();
-                    }
-                // Look for a loader registered for the given type.
-                $.each(this.options.types, function (key, value) {
-                    if (key === ext || (type && type.match(new RegExp('^[^/]+/' + key + '(\\+.+)?$')))) {
-                        loader = loaders[value];
-                        return false;
-                    }
-                });
+
+            if (loader) {
+                if (typeof loader === 'function') {
+                    return loader;
+                }
+                return this.options.loaders[loader] || $.error('No loader registered with name "' + loader + '".');
             }
+
+            if (!type) {
+                m = url.match(/.*\.(.+)(\?.*)?(#.*)?$/i);
+                ext = m && m[1].toLowerCase();
+            }
+
+            // Look for a loader registered for the given type.
+            $.each(this.options.types, function (key, value) {
+                if (key === ext || (type && type.match(new RegExp('^[^/]+/' + key + '(\\+.+)?$')))) {
+                    loader = self.options.loaders[value];
+                    return false;
+                }
+            });
 
             if (!loader) {
                 $.error('No loader found for image.');
             }
 
+            return loader;
+        },
+
+        loadSource: function (url, opts, $source, done, fail) {
+            var loader = this.getLoader(url, opts);
             return loader(url, done, fail);  // TODO: Should we pass options?
         },
 
