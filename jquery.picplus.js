@@ -67,7 +67,11 @@
             $win.on('resize', this._onResize);
         }
 
-        this._initializePlugins();
+        this.pluginInstances = [];
+        $.each(this.options.plugins, function (i, plugin) {
+            this.pluginInstances.push(plugin.create(this));
+        });
+        this._callPluginMethod('initialize');
 
         if (this.options.autoload) {
             this.load();
@@ -110,11 +114,13 @@
             }
         },
 
-        // Loop through and initialize plugins.
-        _initializePlugins: function () {
-            var instance = this;
-            $.each(this.options.plugins, function (i, plugin) {
-                plugin.initialize(instance);
+        // Invoke a method on the plugins for this instance.
+        _callPluginMethod: function (method) {
+            var args = Array.prototype.slice.call(arguments, 1);
+            $.each(this.pluginInstances, function (i, plugin) {
+                if (plugin && typeof plugin[method] === 'function') {
+                    plugin[method].apply(plugin, args);
+                }
             });
         },
 
