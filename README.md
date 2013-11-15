@@ -1,10 +1,11 @@
 jquery.picplus
 ==============
 
-Take control of your images. By [matthewwithanm] and [lettertwo].
+Take control of your images. By [kenzic], [matthewwithanm] and [lettertwo].
 
 [matthewwithanm]: http://github.com/matthewwithanm
 [lettertwo]: http://github.com/lettertwo
+[kenzic]: http://github.com/kenzic
 
 
 What?
