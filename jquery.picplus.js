@@ -6,6 +6,8 @@
     var PicPlus, loadImage, loadSvgInline,
         $win = $(window),
         MQL_DATA = 'picplus-mql',
+        LOADING_DATA = 'picplus-loading',
+        LOADED_DATA = 'picplus-loaded',
         ACTIVE_CLASS = 'picplus-active',
         INACTIVE_CLASS = 'picplus-inactive';
 
@@ -15,34 +17,30 @@
     // wants to load the image or not. If it decides it should load the image,
     // it should return a promise which is resolved with a DOM element
     // representing the loaded image. Otherwise, it should return `null`.
-    loadImage = function (src) {
-        var deferred = $.Deferred(),
-            img = new Image();
+    loadImage = function (src, done, fail) {
+        var img = new Image();
         img.onload = function () {
-            deferred.resolve(img);
+            done(img);
         };
-        img.onerror = function () {
-            deferred.reject();
+        img.onerror = function (err) {
+            fail(err);
         };
         img.src = src;
-        return deferred.promise();
     };
 
 
-    loadSvgInline = function (src) {
-        var deferred = $.Deferred();
+    loadSvgInline = function (src, done, fail) {
         $.ajax({
             url: src,
             dataType: 'text',
             success: function (data) {
                 var svg = $(data);
-                deferred.resolve(svg);
+                done(svg);
             },
-            error: function () {
-                deferred.reject();
+            error: function (xhr, status, err) {
+                fail(err);
             }
         });
-        return deferred.promise();
     };
 
 
@@ -157,6 +155,11 @@
             };
         },
 
+        // Check to see if a particular source is loaded.
+        isLoaded: function ($source) {
+            return $source.data(LOADED_DATA) || false;
+        },
+
         // Load the appropriate source.
         load: function () {
             var $source, i, media, mql;
@@ -177,6 +180,8 @@
         },
 
         onImageLoad: function (img, $source) {
+            $source.trigger('picplus:load');
+
             // Make sure this is the image we were waiting for.
             if (!(this._loadingSource && this._loadingSource[0] === $source[0])) {
                 return;
@@ -184,7 +189,6 @@
             this._loadingSource = null;
             img.onload = null;
             this.showImage($source, img);
-            $source.trigger('picplus:load');
         },
 
         // Show the provided image, for the provided source element.
@@ -214,17 +218,13 @@
         },
 
         // Load the source represented by the provided element.
-        _loadSource: function ($source) {
-            var src, alt, imgAttrs, type, loader,
+        _loadSource: function ($source, done, fail) {
+            var src, alt, imgAttrs, type, loader, onDone,
                 self = this,
-                promise = $source.data('promise');
+                alreadyLoaded = $source.data(LOADED_DATA);
 
-            if (promise) {
-                if (promise.state() === 'resolved') {
-                    this.showImage($source);
-                }
-
-                // TODO: Should promote it to top of queue.
+            if (alreadyLoaded) {
+                this.showImage($source);
                 return;
             }
 
@@ -236,6 +236,14 @@
                 .removeClass(this.options.classNames.sourceLoaded)
                 .addClass(this.options.classNames.sourceLoading);
 
+            this._loadingSource = $source;
+
+            // If the source is already loading, don't load it again.
+            if ($source.data(LOADING_DATA)) {
+                return;
+            }
+
+            $source.data(LOADING_DATA, true);
             src = $source.attr('data-src');
             alt = $source.attr('data-alt');
             type = $source.attr('data-type');
@@ -245,24 +253,21 @@
             }
 
             imgAttrs = {alt: alt};
-
-            promise = this.loadSource(src, {type: type, loader: loader});
-            if (!promise) {
-                $.error('No loader found for image.');
-            }
-
-            promise.then(function (el) {
+            onDone = function (el) {
+                $source
+                    .data(LOADING_DATA, false)
+                    .data(LOADED_DATA, true);
                 $(el).attr(imgAttrs);
-            });
+                self.onImageLoad(el, $source);
+                if (typeof done === 'function') {
+                    done(el);
+                }
+            };
 
-            $source.data('promise', promise);
-            this._loadingSource = $source;
-            promise.done(function (img) {
-                self.onImageLoad(img, $source);
-            });
+            this.loadSource(src, {type: type, loader: loader}, $source, onDone, fail);
         },
 
-        loadSource: function (src, opts) {
+        loadSource: function (url, opts, $source, done, fail) {
             var m, ext, loader, type,
                 loaders = this.options.loaders;
 
@@ -271,9 +276,9 @@
             } else {
                 type = opts.type;
                 if (!type) {
-                    m = src.match(/.*\.(.+)(\?.*)?(#.*)?$/i);
+                    m = url.match(/.*\.(.+)(\?.*)?(#.*)?$/i);
                     ext = m && m[1].toLowerCase();
-                }
+                    }
                 // Look for a loader registered for the given type.
                 $.each(this.options.types, function (key, value) {
                     if (key === ext || (type && type.match(new RegExp('^[^/]+/' + key + '(\\+.+)?$')))) {
@@ -283,7 +288,11 @@
                 });
             }
 
-            return loader && loader(src);  // TODO: Should we pass options?
+            if (!loader) {
+                $.error('No loader found for image.');
+            }
+
+            return loader(url, done, fail);  // TODO: Should we pass options?
         },
 
         destroy: function () {
