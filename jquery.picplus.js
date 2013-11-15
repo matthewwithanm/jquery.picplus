@@ -67,7 +67,11 @@
             $win.on('resize', this._onResize);
         }
 
-        this._callPluginMethod('initialize', this);
+        this.pluginInstances = [];
+        $.each(this.options.plugins, function (i, plugin) {
+            this.pluginInstances.push(plugin.create(this));
+        });
+        this._callPluginMethod('initialize');
 
         if (this.options.autoload) {
             this.load();
@@ -113,8 +117,8 @@
         // Invoke a method on the plugins for this instance.
         _callPluginMethod: function (method) {
             var args = Array.prototype.slice.call(arguments, 1);
-            $.each(this.options.plugins, function (i, plugin) {
-                if (typeof plugin[method] === 'function') {
+            $.each(this.pluginInstances, function (i, plugin) {
+                if (plugin && typeof plugin[method] === 'function') {
                     plugin[method].apply(plugin, args);
                 }
             });
