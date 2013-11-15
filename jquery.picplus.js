@@ -17,7 +17,7 @@
     // wants to load the image or not. If it decides it should load the image,
     // it should return a promise which is resolved with a DOM element
     // representing the loaded image. Otherwise, it should return `null`.
-    loadImage = function (src, done, fail) {
+    loadImage = function (opts, done, fail) {
         var img = new Image();
         img.onload = function () {
             done(img);
@@ -25,13 +25,13 @@
         img.onerror = function (err) {
             fail(err);
         };
-        img.src = src;
+        img.src = opts.url;
     };
 
 
-    loadSvgInline = function (src, done, fail) {
+    loadSvgInline = function (opts, done, fail) {
         $.ajax({
-            url: src,
+            url: opts.url,
             dataType: 'text',
             success: function (data) {
                 var svg = $(data);
@@ -219,7 +219,7 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source, done, fail) {
-            var src, alt, imgAttrs, type, loader, onDone,
+            var src, alt, imgAttrs, type, loader, onDone, opts,
                 self = this,
                 alreadyLoaded = $source.data(LOADED_DATA);
 
@@ -264,12 +264,16 @@
                 }
             };
 
-            this.loadSource(src, {type: type, loader: loader}, $source, onDone, fail);
+            opts = {url: src, type: type, loader: loader, $el: $source};
+            opts.loader = this.getLoader(opts);
+
+            this.loadSource(opts, onDone, fail);
         },
 
-        getLoader: function (url, opts) {
+        getLoader: function (opts) {
             var m, ext,
                 self = this,
+                url = opts.url,
                 loader = opts.loader,
                 type = opts.type;
 
@@ -300,9 +304,8 @@
             return loader;
         },
 
-        loadSource: function (url, opts, $source, done, fail) {
-            var loader = this.getLoader(url, opts);
-            return loader(url, done, fail);  // TODO: Should we pass options?
+        loadSource: function (opts, done, fail) {
+            return opts.loader(opts, done, fail);  // TODO: Should we pass options?
         },
 
         destroy: function () {
