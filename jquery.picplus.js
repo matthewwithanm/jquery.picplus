@@ -166,10 +166,8 @@
 
         // Load the appropriate source.
         load: function () {
-            var $source, i, media, mql;
-            // Iterate in reverse order so that later sources have higher
-            // priority.
-            for (i = this.$sources.length - 1; i >= 0; i -= 1) {
+            var $source, i, media, mql, len;
+            for (i = 0, len = this.$sources.length; i < len; i += 1) {
                 $source = this.$sources.eq(i);
                 media = $source.attr('data-media');
                 mql = $source.data(MQL_DATA);

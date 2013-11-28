@@ -54,10 +54,10 @@ project][2]:
 
 ```html
 <span data-picplus data-alt="An awesome picture">
-    <span data-src="small.jpg"></span>
-    <span data-src="medium.jpg"     data-media="(min-width: 400px)"></span>
-    <span data-src="large.jpg"      data-media="(min-width: 800px)"></span>
     <span data-src="extralarge.jpg" data-media="(min-width: 1000px)"></span>
+    <span data-src="large.jpg"      data-media="(min-width: 800px)"></span>
+    <span data-src="medium.jpg"     data-media="(min-width: 400px)"></span>
+    <span data-src="small.jpg"></span>
 
     <!-- Fallback content for non-JS browsers. Same img src as the initial, unqualified source element. -->
     <noscript>
@@ -66,7 +66,11 @@ project][2]:
 </span>
 ```
 
+However, there's one major difference: sources are evaluated in order, instead
+of in reverse order. See [this issue][3] for more discussion.
+
 [2]: https://github.com/scottjehl/picturefill
+[3]: https://github.com/scottjehl/picturefill/issues/79
 
 
 Embedded SVGs
