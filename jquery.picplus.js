@@ -157,7 +157,7 @@
                 $source = this.$sources.eq(i);
                 media = $source.attr('data-media');
                 mql = $source.data(MQL_DATA);
-                if (!media || (window.matchMedia && mql.matches)) {
+                if (media || (window.matchMedia && mql.matches)) {
                     // We should load this source.
                     this._loadSource($source);
                     break;
