@@ -107,6 +107,15 @@ IE9, you'll need to include a CORS-supporting polyfill like
 [jQuery-ajaxTransport-XDomainRequest]: https://github.com/MoonScript/jQuery-ajaxTransport-XDomainRequest
 
 
+IE9 Compatibility
+-----------------
+
+For full IE9 compatibility, you'll need to load a Cross Origin Resource Sharing pollyfill like [jQuery-ajaxTransport-XDomainRequest] and a mediaMatch pollyfill like [mediaMatch.js].
+
+[jQuery-ajaxTransport-XDomainRequest]: https://github.com/MoonScript/jQuery-ajaxTransport-XDomainRequest
+[mediaMatch.js]: https://github.com/paulirish/matchMedia.js/
+
+
 Lazy Loading
 ------------
 
