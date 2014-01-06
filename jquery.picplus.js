@@ -20,7 +20,7 @@
     loadImage = function (opts, done, fail) {
         var img = new Image();
         img.onload = function () {
-            if ((this.naturalWidth !== undefined && (this.naturalWidth + this.naturalHeight === 0)) || (this.width + this.height === 0)) {
+            if (this.naturalWidth !== undefined && (this.width + this.height === 0)) {
                 fail(new Error("Image <" + opts.url + "> could not be loaded."));
                 return;
             }
@@ -221,7 +221,7 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source, done, fail) {
-            var src, alt, imgAttrs, type, loader, onDone, opts,
+            var src, alt, imgAttrs, type, loader, onDone, onFail, opts,
                 self = this,
                 alreadyLoaded = $source.data(LOADED_DATA);
 
@@ -255,7 +255,10 @@
             }
 
             imgAttrs = {alt: alt};
-            onDone = function (el) {
+
+            onFail = fail || $.noop;
+
+            onDone = done || function (el) {
                 $source
                     .data(LOADING_DATA, false)
                     .data(LOADED_DATA, true);
@@ -269,7 +272,7 @@
             opts = {url: src, type: type, loader: loader, $el: $source};
             opts.loader = this.getLoader(opts);
 
-            this.loadSource(opts, onDone, fail);
+            this.loadSource(opts, onDone, onFail);
         },
 
         getLoader: function (opts) {
