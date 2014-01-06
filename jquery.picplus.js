@@ -221,7 +221,7 @@
 
         // Load the source represented by the provided element.
         _loadSource: function ($source, done, fail) {
-            var src, alt, imgAttrs, type, loader, onDone, opts,
+            var src, alt, imgAttrs, type, loader, onDone, onFail, opts,
                 self = this,
                 alreadyLoaded = $source.data(LOADED_DATA);
 
@@ -255,6 +255,9 @@
             }
 
             imgAttrs = {alt: alt};
+
+            onFail = fail || $.noop;
+
             onDone = function (el) {
                 $source
                     .data(LOADING_DATA, false)
@@ -269,7 +272,7 @@
             opts = {url: src, type: type, loader: loader, $el: $source};
             opts.loader = this.getLoader(opts);
 
-            this.loadSource(opts, onDone, fail);
+            this.loadSource(opts, onDone, onFail);
         },
 
         getLoader: function (opts) {
