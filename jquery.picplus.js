@@ -258,7 +258,7 @@
 
             onFail = fail || $.noop;
 
-            onDone = function (el) {
+            onDone = done || function (el) {
                 $source
                     .data(LOADING_DATA, false)
                     .data(LOADED_DATA, true);
